@@ -8,22 +8,13 @@
 using namespace std;
 
 bool harmonogram_txt::TworzHarmonogram(chromosom_zadan &chr_zadania,
-                                       chromosom_zasobow &chr_zasobu,
-                                       const char *nazwa_harmonogramu,
-                                       int czas_wykonania)
-{
-    czas_wykonania_projektu = czas_wykonania;
-    nazwa = string(nazwa_harmonogramu);
+                                       chromosom_zasobow &chr_zasobu)
+{   
+    unsigned short wszyscy_pracownicy = zespol::PobierzLiczbePracownikowOgolem();
     
-    unsigned short wszyscy_pracownicy = 0;
-    for(short nr_zespolu = 0; nr_zespolu < liczba_zespolow; nr_zespolu++)
-    {
-        wszyscy_pracownicy += lista_zespolow[nr_zespolu].PobierzLiczbePracownikow();
-    }
-    
-    bool **wykres_zadan   = new bool *[czas_wykonania_projektu];
-    bool **wykres_zasobow = new bool *[czas_wykonania_projektu];   
-    for(short dzien = 0; dzien < czas_wykonania_projektu; dzien++)
+    bool **wykres_zadan   = new bool *[czas_realizacji];
+    bool **wykres_zasobow = new bool *[czas_realizacji];   
+    for(short dzien = 0; dzien < czas_realizacji; dzien++)
     {
         wykres_zadan[dzien] = new bool[liczba_zadan];
         wykres_zasobow[dzien] = new bool[wszyscy_pracownicy];
@@ -46,16 +37,15 @@ bool harmonogram_txt::TworzHarmonogram(chromosom_zadan &chr_zadania,
     unsigned short nr_potrzebnego_zasobu;
     unsigned short nr_zespolu;
     unsigned short poczatek_zazn_zasobow;
+    unsigned short najwiecej_w_zespole = zespol::PobierzNajwiecejWZespole();
 
     unsigned short *czasy_ukonczenia = new unsigned short[liczba_zadan];
     unsigned short **zajetosc_zasobow = new unsigned short *[liczba_zespolow];
     for(nr_zespolu = 0; nr_zespolu < liczba_zespolow; nr_zespolu++)
     {
-        zajetosc_zasobow[nr_zespolu] = new unsigned short[zespol::najwiecej_w_zespole];
-        for(short nr_zasobu=0; nr_zasobu<zespol::najwiecej_w_zespole; nr_zasobu++)
-        {
+        zajetosc_zasobow[nr_zespolu] = new unsigned short[najwiecej_w_zespole];
+        for(short nr_zasobu = 0; nr_zasobu < najwiecej_w_zespole; nr_zasobu++)
              zajetosc_zasobow[nr_zespolu][nr_zasobu] = 0;
-        }
     }
     
     for(short nr_genu = 0; nr_genu < liczba_zadan; nr_genu++)
@@ -73,21 +63,21 @@ bool harmonogram_txt::TworzHarmonogram(chromosom_zadan &chr_zadania,
                 
         }      
         
-        // Zliczanie liczby zajętych zasobów
+        // Zliczanie zajętych zasobów
         liczba_zajetych_zasobow = 0;
         nr_zespolu = lista_zadan[chr_zadania.geny[nr_genu]].PobierzNrZespolu();
         for(short nr_zasobu = 0;
-            nr_zasobu < zespol::najwiecej_w_zespole;
+            nr_zasobu < najwiecej_w_zespole;
             nr_zasobu++)
         {
             if(zajetosc_zasobow[nr_zespolu][nr_zasobu])
                 liczba_zajetych_zasobow++;
         }
 
-        liczba_wolnych_zasobow = lista_zespolow[ nr_zespolu ].PobierzLiczbePracownikow()
+        liczba_wolnych_zasobow = lista_zespolow[nr_zespolu].PobierzLiczbePracownikow()
             - liczba_zajetych_zasobow;
         
-        // Zliczanie liczby zajętych zasobów, które potrzebne są do wykonania bieżącego zadania
+        // Zliczanie zajętych zasobów, które potrzebne są do wykonania bieżącego zadania
         if(chr_zasobu.geny[chr_zadania.geny[nr_genu]] > liczba_wolnych_zasobow )
         {
             liczba_brakujacych_zasobow = chr_zasobu.geny[chr_zadania.geny[nr_genu]]
@@ -102,7 +92,7 @@ bool harmonogram_txt::TworzHarmonogram(chromosom_zadan &chr_zadania,
             while(liczba_brakujacych_zasobow)
             {
                 // Znalezienie pierwszego zajętego zasobu
-                for(short nr_zasobu = 0; nr_zasobu < zespol::najwiecej_w_zespole; nr_zasobu++)
+                for(short nr_zasobu = 0; nr_zasobu < najwiecej_w_zespole; nr_zasobu++)
                 {
                     if(zajetosc_zasobow[nr_zespolu][nr_zasobu])
                     {
@@ -112,7 +102,7 @@ bool harmonogram_txt::TworzHarmonogram(chromosom_zadan &chr_zadania,
                 }    
                 
                 // Znajdowanie potrzebnych zasobów, które jako pierwsze się zwolnią
-                for(short nr_zasobu = 0; nr_zasobu < zespol::najwiecej_w_zespole; nr_zasobu++)
+                for(short nr_zasobu = 0; nr_zasobu < najwiecej_w_zespole; nr_zasobu++)
                 {
             
                      if(zajetosc_zasobow[nr_zespolu][nr_zasobu]
@@ -161,7 +151,7 @@ bool harmonogram_txt::TworzHarmonogram(chromosom_zadan &chr_zadania,
             }
             
             for(short nr_zasobu = 0;
-                nr_zasobu < zespol::najwiecej_w_zespole;
+                nr_zasobu < najwiecej_w_zespole;
                 nr_zasobu++ )
             {
                 if(zajetosc_zasobow[nr_zespolu][nr_zasobu] == 0)
@@ -190,12 +180,11 @@ bool harmonogram_txt::TworzHarmonogram(chromosom_zadan &chr_zadania,
         delete [] zajetosc_zasobow[nr_zespolu];
     delete [] zajetosc_zasobow;
     
-    bool pomyslnie_wyeksportowano = EksportujHarmonogram(chr_zadania,
-                                                         chr_zasobu,
-                                                         wszyscy_pracownicy,
-                                                         wykres_zadan,
-                                                         wykres_zasobow);
-    for(short dzien = 0; dzien < czas_wykonania_projektu; dzien++)
+    bool pomyslnie_wyeksportowano = ZapiszDoPliku(chr_zadania,
+                                                  chr_zasobu,
+                                                  wykres_zadan,
+                                                  wykres_zasobow);
+    for(short dzien = 0; dzien < czas_realizacji; dzien++)
     {
         delete [] wykres_zadan[dzien];
         delete [] wykres_zasobow[dzien];
@@ -206,11 +195,10 @@ bool harmonogram_txt::TworzHarmonogram(chromosom_zadan &chr_zadania,
     return pomyslnie_wyeksportowano;
 }
 //------------------------------------------------------------------------------
-bool harmonogram_txt::EksportujHarmonogram(chromosom_zadan &chr_zadania,
-                                           chromosom_zasobow &chr_zasobu,
-                                           unsigned short wszyscy_pracownicy,
-                                           bool ** &wykres_zadan,
-                                           bool ** &wykres_zasobow)
+bool harmonogram_txt::ZapiszDoPliku(chromosom_zadan &chr_zadania,
+                                    chromosom_zasobow &chr_zasobu,
+                                    bool ** &wykres_zadan,
+                                    bool ** &wykres_zasobow)
 {
     string nazwa_pliku = nazwa + ".txt";
     DeleteFile(nazwa_pliku.c_str());
@@ -280,7 +268,8 @@ bool harmonogram_txt::EksportujHarmonogram(chromosom_zadan &chr_zadania,
     plik << '\n';
     
     // Zajętość czasowa
-    for(short jedn_czasu = 0; jedn_czasu < czas_wykonania_projektu; jedn_czasu++)
+    unsigned short wszyscy_pracownicy = zespol::PobierzLiczbePracownikowOgolem();
+    for(short jedn_czasu = 0; jedn_czasu < czas_realizacji; jedn_czasu++)
     {
         plik << jedn_czasu+1 << '\t';
         for(short nr_zadania = 0; nr_zadania < liczba_zadan; nr_zadania++)
