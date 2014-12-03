@@ -12,17 +12,15 @@ void przystosowanie::LiczFunkcjeCelu(chromosom_zadan &chr_zadania,
                    liczba_brakujacych_zasobow;
     unsigned short nr_potrzebnego_zasobu;
     unsigned short nr_zespolu;
-
-    // Czasy ukończenia każdego pojedynczego zadania w chromosomie
+    unsigned short najwiecej_w_zespole = zespol::PobierzNajwiecejWZespole();
+    
     unsigned short *czasy_ukonczenia = new unsigned short[liczba_zadan];
     unsigned short **zajetosc_zasobow = new unsigned short *[liczba_zespolow];
     for(nr_zespolu = 0; nr_zespolu < liczba_zespolow; nr_zespolu++)
     {
-        zajetosc_zasobow[nr_zespolu] = new unsigned short[zespol::najwiecej_w_zespole];
-        for(short nr_zasobu=0; nr_zasobu<zespol::najwiecej_w_zespole; nr_zasobu++)
-        {
+        zajetosc_zasobow[nr_zespolu] = new unsigned short[najwiecej_w_zespole];
+        for(short nr_zasobu = 0; nr_zasobu < najwiecej_w_zespole; nr_zasobu++)
              zajetosc_zasobow[nr_zespolu][nr_zasobu] = 0;
-        }
     }
     
     wartosc_f_celu = 0;
@@ -42,11 +40,11 @@ void przystosowanie::LiczFunkcjeCelu(chromosom_zadan &chr_zadania,
                 
         }   
         
-        // Zliczanie liczby zajętych zasobów
+        // Zliczanie zajętych zasobów
         liczba_zajetych_zasobow = 0;
         nr_zespolu = lista_zadan[chr_zadania.geny[nr_genu]].PobierzNrZespolu();
         for(short nr_zasobu = 0;
-            nr_zasobu < zespol::najwiecej_w_zespole;
+            nr_zasobu < najwiecej_w_zespole;
             nr_zasobu++)
         {
             if(zajetosc_zasobow[nr_zespolu][nr_zasobu])
@@ -56,7 +54,7 @@ void przystosowanie::LiczFunkcjeCelu(chromosom_zadan &chr_zadania,
         liczba_wolnych_zasobow = lista_zespolow[nr_zespolu].PobierzLiczbePracownikow()
             - liczba_zajetych_zasobow;
         
-        // Zliczanie liczby zajętych zasobów, które potrzebne są do wykonania bieżącego zadania
+        // Zliczanie zajętych zasobów, które potrzebne są do wykonania bieżącego zadania
         if(chr_zasoby.geny[chr_zadania.geny[nr_genu]] > liczba_wolnych_zasobow )
         {
             liczba_brakujacych_zasobow = chr_zasoby.geny[chr_zadania.geny[nr_genu]]
@@ -71,7 +69,7 @@ void przystosowanie::LiczFunkcjeCelu(chromosom_zadan &chr_zadania,
             while(liczba_brakujacych_zasobow)
             {
                 // Znalezienie pierwszego zajętego zasobu
-                for(short nr_zasobu = 0; nr_zasobu < zespol::najwiecej_w_zespole; nr_zasobu++)
+                for(short nr_zasobu = 0; nr_zasobu < najwiecej_w_zespole; nr_zasobu++)
                 {
                     if(zajetosc_zasobow[nr_zespolu][nr_zasobu])
                     {
@@ -81,7 +79,7 @@ void przystosowanie::LiczFunkcjeCelu(chromosom_zadan &chr_zadania,
                 }    
                 
                 // Znajdowanie potrzebnych zasobów, które jako pierwsze się zwolnią
-                for(short nr_zasobu = 0; nr_zasobu < zespol::najwiecej_w_zespole; nr_zasobu++)
+                for(short nr_zasobu = 0; nr_zasobu < najwiecej_w_zespole; nr_zasobu++)
                 {
             
                      if(zajetosc_zasobow[nr_zespolu][nr_zasobu]
@@ -111,7 +109,7 @@ void przystosowanie::LiczFunkcjeCelu(chromosom_zadan &chr_zadania,
             nr_potrzebnego_zasobu++)
         {
             for(short nr_zasobu = 0;
-                nr_zasobu < zespol::najwiecej_w_zespole;
+                nr_zasobu < najwiecej_w_zespole;
                 nr_zasobu++ )
             {
                 if(zajetosc_zasobow[nr_zespolu][nr_zasobu] == 0)
