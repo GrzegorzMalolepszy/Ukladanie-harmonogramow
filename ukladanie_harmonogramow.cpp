@@ -162,8 +162,6 @@ int main()
         cout << "\tPomyslnie wyeksportowano harmonogram do pliku.\n";
     else
         cout << "\tBlad przy eksporcie harmonogramu do pliku!\n";
-        
-    delete harmonogram_poczatkowy; 
 
     // Algorytm ewolucyjny
     for(int generacja = 1; generacja <= liczba_iteracji; generacja++)
@@ -221,8 +219,6 @@ int main()
         cout << "\tPomyslnie wyeksportowano harmonogram do pliku.\n";
     else
         cout << "\tBlad przy eksporcie harmonogramu do pliku!\n";
-        
-    delete harmonogram_koncowy;
     
     czas_dzialania_programu = clock() - czas_dzialania_programu;
     cout << "\nCzas obliczen algorytmu: "
